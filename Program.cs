@@ -45,20 +45,27 @@ nah.. lets hide complexity
 ";
             lcd
                 .Animate(50)
-                .TrimPadding(14, 14)
                 .Start()
-                .Font("Debug").FontSize(1.0f).NewLine(LCD.BOTH)
+
+
+                .TrimPadding(14, 14).Font("Debug").FontSize(1.0f).NewLine(LCD.BOTH)
                 .AddText("ASDF")
                 .Font("White").FontSize(2.0f).AddText("1234")
                 .FontSize(0.6f).AddText("IJKL")
                 .SpriteSize(512, 1).NewLine(LCD.NEITHER).AddSprite("SquareSimple")
-                .FontSize(2.0f).NewLine()
-                //.TrimPadding(0,0)
+
+
+                .TrimPadding(0, 0).FontSize(2.0f).NewLine()
                 .AddText("Padding Back On")
-                .FontSize(2.0f).SpriteSize(40, 40).NewLine()
+
+                .FontSize(2.0f).SpriteSize(40, 43).NewLine()
                 .AddText("O2/H2 indicator:")
                 .AddSpriteAnimation(new string[] { "IconHydrogen", "IconOxygen" }, 1.0f)
-                .Form(markup)
+
+                //.TrimPadding(-10, 14).FontSize(0.4f).NewLine(LCD.TEXT)
+                //.AddText("Extra padding on top")
+
+                //.Form(markup)
                 .End();
 
             //lcd.Animate(50); // move this inside lcd to detect if animation is desired in ml?
