@@ -1,0 +1,51 @@
+﻿// IMyTextSurface
+//float FontSize { get; set; }
+//Color ScriptForegroundColor { get; set; }
+//Color ScriptBackgroundColor { get; set; }
+//float TextPadding { get; set; }  no used in script mode
+//bool PreserveAspectRatio { get; set; }
+//Vector2 TextureSize { get; }
+//Vector2 SurfaceSize { get; }
+//ContentType ContentType { get; set; }
+//string Script { get; set; }
+//TextAlignment Alignment { get; set; }
+//string Font { get; set; }
+//byte BackgroundAlpha { get; set; }
+//Color BackgroundColor { get; set; }
+//Color FontColor { get; set; }
+
+//MySprite
+//public SpriteType Type;
+//public Vector2? Position;
+//public Vector2? Size;
+//public Color? Color;
+//public string Data;
+//public string FontId;
+//public TextAlignment Alignment;
+//public float RotationOrScale;
+namespace IngameScript
+{
+// string,justify,pos,scalerot
+//var mu = $@"
+//Some string,L,(x,y),z
+//{
+//";
+Debug,Red,Green,Blue,White,DarkBlue,UrlNormal,UrlHighlight,ErrorMessageBoxCaption,ErrorMessageBoxText,InfoMessageBoxCaption,InfoMessageBoxText,ScreenCaption,GameCredits,LoadingScreen,BuildInfo,BuildInfoHighlight,Monospace,
+
+normal|hscroll|vscroll,Some string,L,(x,y),z
+
+add_marquis(text, pos)
+
+Ok lets use both markdown for some autstuff and functs for complex shit.  f parsing
+
+
+globals positinal last item, current item
+lcd.addThing ;  adds item and calcs next position or?
+
+lcd.addThing
+lcd.advancePosistion ; based on last thing's size?
+
+lcd.pos(last+x, last+y) ; to 
+
+lcd
+.addText.addText.prevCursor.
