@@ -25,16 +25,10 @@ namespace IngameScript
         public Program()
         {
             lcd = new LCD(this, Me.GetSurface(0));
-        
             Runtime.UpdateFrequency = UpdateFrequency.Update10;
-  
-
         }
-
         public void Save()
         {
-
-
         }
 
         string markup;  // test a markdown format for lcds
@@ -47,21 +41,23 @@ Ex.  [flag ?  lcd.sprite('spinner') : lcd.sprite('not spinner')]
 mass = [mass]
 or make it like a form?
 lcd.addtext(blah, x,y?)
-
 nah.. lets hide complexity
 ";
             lcd
                 .Animate(50)
+                .TrimPadding(14, 14)
                 .Start()
-                .SetFont("White", 2.0f)
-                .NewLine()
+                .Font("Debug").FontSize(1.0f).NewLine(LCD.BOTH)
                 .AddText("ASDF")
-                .SetFont("White", 0.5f)
-                .AddText("1234")
-                .SetFont("White", 1.5f)
-                .AddText("IJKL")
-                //.CursorNewline("1234")
-                //.AddText("ASDF1234")
+                .Font("White").FontSize(2.0f).AddText("1234")
+                .FontSize(0.6f).AddText("IJKL")
+                .SpriteSize(512, 1).NewLine(LCD.NEITHER).AddSprite("SquareSimple")
+                .FontSize(2.0f).NewLine()
+                //.TrimPadding(0,0)
+                .AddText("Padding Back On")
+                .FontSize(2.0f).SpriteSize(40, 40).NewLine()
+                .AddText("O2/H2 indicator:")
+                .AddSpriteAnimation(new string[] { "IconHydrogen", "IconOxygen" }, 1.0f)
                 .Form(markup)
                 .End();
 
@@ -70,7 +66,7 @@ nah.. lets hide complexity
             //lcd.AddText("asdf");
             //// do we really want to regen the form for every update?  for now i will
             //lcd.Form(markup); 
-            
+
             //lcd.End();  // if form is generated each time, this is extra code...  just update in form
         }
     }
