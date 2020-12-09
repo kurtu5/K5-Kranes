@@ -34,33 +34,37 @@ namespace IngameScript
         string markup;  // test a markdown format for lcds
         public void Main(string argument, UpdateType updateSource)
         {
-            markup =
-$@"
-Invent some things here.
-Ex.  [flag ?  lcd.sprite('spinner') : lcd.sprite('not spinner')]
-mass = [mass]
-or make it like a form?
-lcd.addtext(blah, x,y?)
-nah.. lets hide complexity
-";
+//            string ipsm = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.";
+            string ipsm = "Lorem ipsum dolor sit amet, consectetur adipiscing elit...";
+            lcd._debug = false;
             lcd
                 .Animate(50)
                 .Start()
 
+                .Font("White").SpriteSize(10,100).FontSize(2).NewLine(LCD.NewLineCaculation.TEXT)
+                .AddText("No Marquee.")
 
-                .TrimPadding(14, 14).Font("Debug").FontSize(1.0f).NewLine(LCD.BOTH)
-                .AddText("ASDF")
-                .Font("White").FontSize(2.0f).AddText("1234")
-                .FontSize(0.6f).AddText("IJKL")
-                .SpriteSize(512, 1).NewLine(LCD.NEITHER).AddSprite("SquareSimple")
+                .NewLine(LCD.NewLineCaculation.TEXT)
+                .AddMarquee(ipsm, 0.1f)
+                
+                .NewLine(LCD.NewLineCaculation.TEXT)
+                .AddMarquee("12345", 1.0f)
+                //.TrimPadding(18, 11).Font("Debug").FontSize(1).NewLine(LCD.BOTH)
+                //.Font("White").FontSize(1).AddText("|||")
+                //.AddText("X")
 
+                //.FontSize(2).NewLine().FontSize(1).AddText("XYZ")
 
-                .TrimPadding(0, 0).FontSize(2.0f).NewLine()
-                .AddText("Padding Back On")
+                //.Font("White").FontSize(2.0f).AddText("1234")
+                //.FontSize(0.6f).AddText("IJKL")
+                //.SpriteSize(512, 1).NewLine(LCD.NEITHER).AddSprite("SquareSimple")
 
-                .FontSize(2.0f).SpriteSize(40, 43).NewLine()
-                .AddText("O2/H2 indicator:")
-                .AddSpriteAnimation(new string[] { "IconHydrogen", "IconOxygen" }, 1.0f)
+                //.TrimPadding(0, 0).FontSize(2.0f).NewLine()
+                //.AddText("Padding Back On")
+
+                //.FontSize(2.0f).SpriteSize(40, 43).NewLine()
+                //.AddText("O2/H2 indicator:")
+                //.AddSpriteAnimation(new string[] { "IconHydrogen", "IconOxygen" }, 1.0f)
 
                 //.TrimPadding(-10, 14).FontSize(0.4f).NewLine(LCD.TEXT)
                 //.AddText("Extra padding on top")
@@ -68,13 +72,6 @@ nah.. lets hide complexity
                 //.Form(markup)
                 .End();
 
-            //lcd.Animate(50); // move this inside lcd to detect if animation is desired in ml?
-            //lcd.Start();
-            //lcd.AddText("asdf");
-            //// do we really want to regen the form for every update?  for now i will
-            //lcd.Form(markup); 
-
-            //lcd.End();  // if form is generated each time, this is extra code...  just update in form
         }
     }
 }

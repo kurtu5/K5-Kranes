@@ -23,6 +23,9 @@ namespace IngameScript
     {
         public class LCD  // : MyGridProgram
         {
+            /// <summary>
+            /// Set and access previous sprite properties after subsequent iterations.
+            /// </summary>
             public class Properties
             {
                 private int _element_count;
@@ -70,6 +73,9 @@ namespace IngameScript
                     }
                 }
             }
+
+            // This class is overkill.  Sprites can only really use scriptbackground
+            // So just reference it directly
             public class LDCSurface
             {
                 // IMyTextSurface properties
@@ -100,11 +106,12 @@ namespace IngameScript
                 public float rotationOrScale;
                 public float rotation;
                 public float fontScale;
+
                 public LCDSprite()
                 {
                     type = SpriteType.TEXTURE;
                     posistion = new Vector2();
-                    size = new Vector2(0,0);
+                    size = new Vector2(0, 0);
                     color = new Color();
                     data = "";
                     fontId = "";
@@ -115,8 +122,6 @@ namespace IngameScript
                 }
             }
 
-
-
             // LCD Specifics
             private Program _program;
             private IMyTextSurface _surface;
@@ -124,7 +129,7 @@ namespace IngameScript
             private MySpriteDrawFrame _frame;
             private double _elapsedMs;
             private RectangleF _viewport;
-            private bool _debug;
+            public bool _debug;
 
             // Line positioning
             private Vector2 _posTL;
@@ -132,10 +137,18 @@ namespace IngameScript
             private Vector2 _posBL;
             private float _currentLineHeight;
             // Newline flags
-            public const byte TEXT = 1 << 0;
-            public const byte SPRITE = 1 << 1;
-            public const byte BOTH = TEXT | SPRITE;
-            public const byte NEITHER = 1 << 2;
+            //public const byte TEXT = 1 << 0;
+            //public const byte SPRITE = 1 << 1;
+            //public const byte BOTH = TEXT | SPRITE;
+            //public const byte NEITHER = 1 << 2;
+
+            public enum NewLineCaculation
+            {
+                TEXT = 1 << 0,
+                SPRITE = 1 << 1,
+                BOTH = TEXT | SPRITE,
+                NEITHER = 1 << 2
+            };
 
             // Animation support
             private Properties _properties;
@@ -147,16 +160,14 @@ namespace IngameScript
             private float _textPctPaddingTop;
             private float _textPctPaddingBot;
 
-
-
-
             public LCD(Program program, IMyTextSurface surface)
             {
+
                 _program = program;
                 _properties = new Properties(_program);
                 _sprite = new LCDSprite();
                 _surface = surface;
-                _debug = true;  // Highlight things with redlines or boxes.
+                _debug = false;  // Highlight things with redlines or boxes.
 
                 // Animation
                 _animationCurrentFrame = 0;
@@ -166,6 +177,7 @@ namespace IngameScript
                 // Set up the surface
                 _surface.ContentType = ContentType.SCRIPT;
                 _surface.ScriptBackgroundColor = Color.Black;
+
 
                 // Calculate the viewport offset by centering the surface size onto the texture size
                 _viewport = new RectangleF(
@@ -177,11 +189,11 @@ namespace IngameScript
                 _posBLprev = _viewport.Position;
 
                 // Padding percentages calculated from screenshot
-                _textPctPaddingTop = 175.0f / 725.0f; // top px / total height 0.24
-                _textPctPaddingBot = 100.0f / 725.0f; // bottom px / total height 0.13
-
-
-
+                //_textPctPaddingTop = 175.0f / 725.0f; // top px / total height 0.24
+                //_textPctPaddingBot = 100.0f / 725.f;0 // bottom px / total height 0.13
+                // Actually looks more like 18% top and 11% bottom
+                _textPctPaddingTop = 0.18f;
+                _textPctPaddingBot = 0.11f;
             }
             /// <summary>
             /// Resets the display to allow addition of new sprites
@@ -189,23 +201,32 @@ namespace IngameScript
             /// <returns></returns>
             public LCD Start()
             {
-
-                _program.Echo($"TL={VString(_posTL)}");
-                _properties.resetCount();
+                //_program.Echo($"TL={VString(_posTL)}");
+                // Since we are reusing objects, make sure to reset them here
                 _posBL = _posTL; // bottom of current line is off screen
                 _frame = _surface.DrawFrame();  // should i use new?
+
+                _properties.resetCount();
+                _sprite.data = "";
+                _sprite.fontId = "White";
+                _sprite.fontScale = 1.0f;
+                _sprite.posistion = new Vector2(0, 0);
+                _sprite.rotation = 0.0f;
+                _sprite.size = new Vector2(0, 0);
+                _sprite.textAlignment = TextAlignment.LEFT;
+
                 return this;
             }
 
             /// <summary>
             /// Trim default MySprit text padding.
-            /// Top  is 24%
-            /// Bottom is 14%
+            /// Top  is 18%
+            /// Bottom is 11%
             /// </summary>
             /// <param name="top"></param>
             /// <param name="bottom"></param>
             /// <returns></returns>
-            /// <example>TrimPadding(24,14) Will remove all text padding</example>
+            /// <example>TrimPadding(18,11) Will remove all text padding</example>
             public LCD TrimPadding(int top, int bottom)
             {
                 _textPctPaddingTop = (float)(top / 100.0f);
@@ -241,6 +262,7 @@ namespace IngameScript
                 return this;
             }
 
+            // For debugging.... remove
             public string binary(Byte b)
             {
                 return Convert.ToString(b, 2).PadLeft(8, '0');
@@ -250,20 +272,19 @@ namespace IngameScript
             /// move cursor down that much to the next line
             /// </summary>
             /// <returns></returns>
-            public LCD NewLine(byte flag = BOTH)
+            public LCD NewLine(NewLineCaculation flag = NewLineCaculation.BOTH)
             {
                 float height = 0.0f;
-                _program.Echo($"check flag {binary(flag)} & {binary(TEXT)}");
-                if ((flag & TEXT) == TEXT)
+                if ((flag & NewLineCaculation.TEXT) == NewLineCaculation.TEXT)
                 {
                     height = PaddedTextSize("").Y;
                     // Remove padding to get actual height
                     height *= (1.0f - (_textPctPaddingTop + _textPctPaddingBot));
-                    _program.Echo($"Text height={height} ");
+                    //_program.Echo($"Text height={height} ");
                 }
-                if ((flag & SPRITE) == SPRITE)
+                if ((flag & NewLineCaculation.SPRITE) == NewLineCaculation.SPRITE)
                 {
-                    _program.Echo($"vs Sprite height={_sprite.size.Y}");
+                    //_program.Echo($"vs Sprite height={_sprite.size.Y}");
                     if (height < _sprite.size.Y)
                         height = _sprite.size.Y;
                 }
@@ -271,17 +292,18 @@ namespace IngameScript
                 // if NEITHER  height is alreay zero.
                 _posBLprev = _posBL;
                 _posBL = new Vector2(_posTL.X, _posBL.Y + height);
-                _program.Echo($"New Line:{VString(_posBLprev)}->{VString(_posBL)}");
+                //_program.Echo($"New Line:{VString(_posBLprev)}->{VString(_posBL)}");
 
+                var stroke = 2;
                 if (_debug)
                     _frame.Add(new MySprite()
                     {
                         Type = SpriteType.TEXTURE,
-                        Data = "SquareHollow",
+                        Data = "SquareSimple",
                         Position = _posBL,
                         RotationOrScale = 0.0f,
-                        Size = new Vector2(_viewport.Width, 4),
-                        Color = Color.Red,
+                        Size = new Vector2(_viewport.Width, stroke),
+                        Color = Color.Aqua,
                         Alignment = TextAlignment.LEFT
                     }
                         );
@@ -296,17 +318,17 @@ namespace IngameScript
             {
                 _posBLprev = _posBL;
                 _posBL += new Vector2(size.X, 0);
-                _program.Echo($"CursorRight:{VString(_posBLprev)}->{VString(_posBL)}");
+                //_program.Echo($"CursorRight:{VString(_posBLprev)}->{VString(_posBL)}");
                 return this;
             }
 
             /// <summary>
-            /// size of text
+            /// Size of text at the cuurent font and fontsize.
             /// </summary>
             private Vector2 PaddedTextSize(string text)
             {
                 Vector2 size = _surface.MeasureStringInPixels(new StringBuilder(text), _sprite.fontId, _sprite.fontScale);
-                _program.Echo($"Size of \"{text}\" is {VString(size)}");
+                //_program.Echo($"Size of \"{text}\" is {VString(size)}");
                 return size;
             }
             public LCD SetPos(float x, float y)
@@ -318,6 +340,7 @@ namespace IngameScript
 
             public LCD SpriteSize(float w, float h)
             {
+
                 _sprite.size.X = w;
                 _sprite.size.Y = h;
                 return this;
@@ -333,7 +356,7 @@ namespace IngameScript
                 _sprite.data = sprite;
                 Vector2 size = _sprite.size;
                 var pos = _posBL - new Vector2(0, size.Y);
-                _program.Echo($"AddSprite:{sprite} POS:{VString(pos)} BL:{VString(_posBL)}");
+                //_program.Echo($"AddSprite:{sprite} POS:{VString(pos)} BL:{VString(_posBL)}");
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXTURE,
@@ -364,7 +387,7 @@ namespace IngameScript
                 // actual size without padding
                 size.Y *= (1.0f - (_textPctPaddingTop + _textPctPaddingBot));
 
-                _program.Echo($"AddText:{text} POS:{VString(pos)} BL:{VString(_posBL)}");
+                //_program.Echo($"AddText:{text} POS:{VString(pos)} BL:{VString(_posBL)}");
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXT,
@@ -379,7 +402,7 @@ namespace IngameScript
 
                 //var pos2 = _posBL - new Vector2(0, size.Y / 2.0f);
                 if (_debug)
-                    DrawBox(_posBL - new Vector2(0, size.Y ), size, 6);
+                    DrawBox(_posBL - new Vector2(0, size.Y), size, 3);
 
                 if (false) _frame.Add(new MySprite()
                 {
@@ -395,6 +418,75 @@ namespace IngameScript
                 return this;
             }
 
+            /// <summary>
+            /// Add marquee text at current cursor
+            /// </summary>
+            /// <param name="text"></param>
+            /// <returns></returns>
+            public LCD AddMarquee(string text, float seconds)
+            {
+                var props = _properties.addifnew();
+                // Put this in properties for efficiency...
+                StringBuilder textSubstring = new StringBuilder();
+                if ((props.animation_ms_until_update -= _elapsedMs) < 0)
+                {
+                    props.animation_ms_until_update = (double)(seconds * 1000.0f);
+                    // Lets substr using this index
+                    props.animation_frame_index += 1;
+                    props.animation_frame_index %= text.Length;
+                }
+                int i = props.animation_frame_index;
+                _program.Echo($"substr({i},{text.Length - i})");
+                int minWidth = 100;
+                // How many chars can approximatly fit
+                // var textsize = PaddedTextSize("asdflkasdopd09asd09asdfjkasdjklalkdfjladjakljdlkadjk");
+                // var textwidth = _viewport.Width;
+                // int fittableChars = 123;
+                textSubstring.Append(text.Substring(i, text.Length - i));
+                var newwidth = textSubstring.Length;
+                var pad = minWidth - newwidth;
+                if (pad > 0)
+                    textSubstring.Append(text.Substring(0, (pad < text.Length ) ? pad : text.Length ));
+
+                _sprite.textAlignment = TextAlignment.LEFT;
+                _sprite.data = textSubstring.ToString();
+
+                // Deal with wonky padding
+                Vector2 size = PaddedTextSize(text);
+                var pos = _posBL - new Vector2(0, size.Y * (1.0f - _textPctPaddingBot));
+                // actual size without padding
+                size.Y *= (1.0f - (_textPctPaddingTop + _textPctPaddingBot));
+
+                //_program.Echo($"AddText:{text} POS:{VString(pos)} BL:{VString(_posBL)}");
+                _frame.Add(new MySprite()
+                {
+                    Type = SpriteType.TEXT,
+                    Data = _sprite.data,
+                    Position = pos,
+                    RotationOrScale = _sprite.fontScale,
+                    FontId = _sprite.fontId,
+                    //Size = new Vector2(1280, 80),
+                    // Color = new Color(1.0f, 0.0f, 0.0f),
+                    Alignment = _sprite.textAlignment
+                });
+
+                //var pos2 = _posBL - new Vector2(0, size.Y / 2.0f);
+                if (_debug)
+                    DrawBox(_posBL - new Vector2(0, size.Y), size, 3);
+
+                if (false) _frame.Add(new MySprite()
+                {
+                    Type = SpriteType.TEXTURE,
+                    Data = "SquareHollow",
+                    Position = _posBL - new Vector2(0, size.Y / 2.0f),
+                    RotationOrScale = 0.0f,
+                    Size = size,
+                    Color = Color.Red,
+                    Alignment = TextAlignment.LEFT
+                });
+                CursorRight(size);
+                return this;
+            }
             public LCD AddSpriteAnimation(string[] spriteList, float seconds)
             {
                 var props = _properties.addifnew();
@@ -420,31 +512,59 @@ namespace IngameScript
                 return this;
             }
 
-            public LCD DrawBox(Vector2 pos, Vector2 size, float stroke = 1.0f)
+            // Primatives
+            public LCD SetColor(Color color)
             {
-                Color color = Color.RoyalBlue;
-                float half = stroke / 2.0f;
+                _sprite.color = color;
+                return this;
+            }
 
+            // Probably need to rethink this one...
+            public LCD DrawLine(Vector2 pos, Vector2 size, float stroke = 1.0f)
+            {
                 // Top
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXTURE,
                     Data = "SquareSimple",
+                    Position = new Vector2(pos.X, pos.Y),
+                    RotationOrScale = 0.0f,
+                    Size = new Vector2(size.X, size.Y),
+                    Color = _sprite.color,
+                    Alignment = TextAlignment.LEFT
+                });
+                return this;
+            }
+
+            // Really only using this for debugging now...
+            public LCD DrawBox(Vector2 pos, Vector2 size, float stroke = 1.0f)
+            {
+                Color[] colors = { Color.Red, Color.Green, Color.Yellow, Color.Orange };
+                //Color[] colors = { Color.Red, Color.Red, Color.Red, Color.Red };
+                float half = stroke / 2.0f;
+                string data;
+                data = "SquareSimple";
+                //data = "SquareHollow";
+                // Top
+                _frame.Add(new MySprite()
+                {
+                    Type = SpriteType.TEXTURE,
+                    Data = data,
                     Position = new Vector2(pos.X, pos.Y + half),
                     RotationOrScale = 0.0f,
                     Size = new Vector2(size.X, stroke),
-                    Color = Color.Red,
+                    Color = colors[0],
                     Alignment = TextAlignment.LEFT
                 });
                 // Bottom
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXTURE,
-                    Data = "SquareSimple",
+                    Data = data,
                     Position = new Vector2(pos.X, pos.Y + size.Y - half),
                     RotationOrScale = 0.0f,
                     Size = new Vector2(size.X, stroke),
-                    Color = Color.Green,
+                    Color = colors[1],
                     Alignment = TextAlignment.LEFT
                 });
 
@@ -452,22 +572,22 @@ namespace IngameScript
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXTURE,
-                    Data = "SquareSimple",
-                    Position = new Vector2(pos.X, pos.Y),
+                    Data = data,
+                    Position = new Vector2(pos.X, pos.Y + (size.Y / 2)),
                     RotationOrScale = 0.0f,
                     Size = new Vector2(stroke, size.Y),
-                    Color = Color.Blue,
+                    Color = colors[2],
                     Alignment = TextAlignment.LEFT
                 });
                 // Right
                 _frame.Add(new MySprite()
                 {
                     Type = SpriteType.TEXTURE,
-                    Data = "SquareSimple",
-                    Position = new Vector2(size.X, pos.Y),
+                    Data = data,
+                    Position = new Vector2(pos.X + size.X - stroke, pos.Y + (size.Y / 2)),
                     RotationOrScale = 0.0f,
                     Size = new Vector2(stroke, size.Y),
-                    Color = Color.Orange,
+                    Color = colors[3],
                     Alignment = TextAlignment.LEFT
                 });
                 return this;
@@ -498,7 +618,6 @@ namespace IngameScript
             /// <returns></returns>
             public LCD Animate(int frameCount)
             {
-                _program.Echo($"SPRITEHIEGHTATSTART={_sprite.size.Y}");
 
                 _animationEndFrame = frameCount;
                 _elapsedMs = _program.Runtime.TimeSinceLastRun.TotalMilliseconds;
